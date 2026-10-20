@@ -3,6 +3,9 @@ import { svc } from './services/transactionService'
 import type { Tx } from './types'
 import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
+import Reports from './pages/Reports'
+import Categories from './pages/Categories'
+import Budgets from './pages/Budgets'
 import TxForm from './components/TxForm'
 const PAGES = ['Dashboard', 'Transações', 'Relatórios', 'Categorias', 'Orçamentos', 'Configurações']
 export default function App() {
@@ -26,7 +29,9 @@ export default function App() {
       {page === 'Configurações' && <><div className="hd"><div><h1>Configurações</h1><p className="sub">Dados ficam só neste navegador</p></div></div>
         <div className="card"><h2>Dados de demonstração</h2><p>{demos ? `Há ${demos} lançamentos de demonstração.` : 'Nenhum dado de demonstração.'}</p>
           <button className="btn" disabled={!demos} onClick={() => { if (confirm('Remover todos os dados de demonstração?')) { svc.clearDemo(); refresh('Dados de demonstração removidos') } }}>Remover dados de demonstração</button></div></>}
-      {['Relatórios', 'Categorias', 'Orçamentos'].includes(page) && <><div className="hd"><h1>{page}</h1></div><div className="card empty">Esta página ainda não foi construída nesta versão.</div></>}
+      {page === 'Relatórios' && <Reports list={list} {...ym} shift={shift} />}
+      {page === 'Categorias' && <Categories list={list} {...ym} shift={shift} />}
+      {page === 'Orçamentos' && <Budgets list={list} {...ym} shift={shift} />}
     </main>
     {form && <TxForm key={form.k} tx={form.tx} onClose={() => setForm(null)} onSaved={refresh} />}
     <div id="toast" className={toast ? 's' : ''} role="status">{toast}</div>
