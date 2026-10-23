@@ -1,0 +1,1 @@
+ALTER TABLE transacao ALTER COLUMN tipo TYPE VARCHAR(1);
