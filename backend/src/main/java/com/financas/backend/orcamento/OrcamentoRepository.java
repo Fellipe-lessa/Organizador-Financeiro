@@ -8,4 +8,5 @@ import org.springframework.data.jpa.repository.JpaRepository;
 public interface OrcamentoRepository extends JpaRepository<Orcamento, Long> {
     List<Orcamento> findByMes(LocalDate mes);
     Optional<Orcamento> findByCategoriaIdAndMes(Long categoriaId, LocalDate mes);
+    boolean existsByCategoriaId(Long categoriaId);
 }

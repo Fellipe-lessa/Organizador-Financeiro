@@ -1,20 +1,21 @@
 import { useEffect, useRef, useState, FormEvent } from 'react'
 import { svc } from '../services/transactionService'
-import { CATS, PAYS, Tx, TxType } from '../types'
-import { pad, parseCents } from '../utils'
-export default function TxForm({ tx, onClose, onSaved }: { tx?: Tx; onClose: () => void; onSaved: (m: string) => void }) {
+import { PAYS, Cat, Tx, TxType } from '../types'
+import { expenseNames, pad, parseCents } from '../utils'
+export default function TxForm({ tx, cats, onClose, onSaved }: { tx?: Tx; cats: Cat[]; onClose: () => void; onSaved: (m: string) => void }) {
   const ref = useRef<HTMLDialogElement>(null)
   const t = new Date()
+  const exp = expenseNames(cats)
   const [type, setType] = useState<TxType>(tx?.type ?? 'd')
   const [date, setDate] = useState(tx?.date ?? `${t.getFullYear()}-${pad(t.getMonth() + 1)}-${pad(t.getDate())}`)
-  const [cat, setCat] = useState(tx?.cat ?? CATS[0])
+  const [cat, setCat] = useState(tx?.cat ?? exp[0])
   const [pay, setPay] = useState(tx?.pay ?? PAYS[0])
   const [val, setVal] = useState(tx ? (tx.cents / 100).toFixed(2).replace('.', ',') : '')
   const [note, setNote] = useState(tx?.note ?? '')
   const [err, setErr] = useState('')
   const [busy, setBusy] = useState(false)
   useEffect(() => { ref.current?.showModal() }, [])
-  const pick = (ty: TxType) => { setType(ty); setCat(ty === 'r' ? 'Renda' : CATS[0]) }
+  const pick = (ty: TxType) => { setType(ty); setCat(ty === 'r' ? 'Renda' : exp[0]) }
   const submit = async (e: FormEvent) => {
     e.preventDefault()
     const cents = parseCents(val)
@@ -41,7 +42,7 @@ export default function TxForm({ tx, onClose, onSaved }: { tx?: Tx; onClose: () 
         </div>
         <label htmlFor="date">Data</label><input className="in" type="date" id="date" value={date} onChange={e => setDate(e.target.value)} />
         <label htmlFor="cat">Categoria</label>
-        <select className="in" id="cat" value={cat} onChange={e => setCat(e.target.value)}>{(type === 'r' ? ['Renda', 'Outros'] : CATS).map(c => <option key={c}>{c}</option>)}</select>
+        <select className="in" id="cat" value={cat} onChange={e => setCat(e.target.value)}>{(type === 'r' ? ['Renda', 'Outros'] : exp).map(c => <option key={c}>{c}</option>)}</select>
         <label htmlFor="pay">Forma de pagamento</label>
         <select className="in" id="pay" value={pay} onChange={e => setPay(e.target.value)}>{PAYS.map(c => <option key={c}>{c}</option>)}</select>
         <label htmlFor="val">Valor (R$)</label><input className="in" id="val" inputMode="decimal" placeholder="0,00" autoComplete="off" autoFocus value={val} onChange={e => setVal(e.target.value)} />

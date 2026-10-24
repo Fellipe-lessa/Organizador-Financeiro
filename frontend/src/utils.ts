@@ -1,5 +1,4 @@
-import type { Tx, TxType } from './types'
-import { CATS } from './types'
+import type { Cat, Tx, TxType } from './types'
 export const COL = ['#1D3ECE','#13B968','#5B76E8','#0B7A43','#8FA2F0','#6BD6A0','#2A3350','#9AA3B8','#C5CCDB','#3F5BD9','#A8EBC8']
 export const MN = ['janeiro','fevereiro','março','abril','maio','junho','julho','agosto','setembro','outubro','novembro','dezembro']
 export const brl = (c: number) => (c / 100).toLocaleString('pt-BR', { style: 'currency', currency: 'BRL' })
@@ -16,7 +15,10 @@ export const byCat = (l: Tx[]): [string, number][] => {
   l.filter(t => t.type === 'd').forEach(t => { o[t.cat] = (o[t.cat] || 0) + t.cents })
   return Object.entries(o).sort((a, b) => b[1] - a[1])
 }
-export const catColor = (c: string) => COL[Math.max(0, CATS.indexOf(c)) % COL.length]
+let ORDER: string[] = []
+export const setCatOrder = (cats: Cat[]) => { ORDER = [...cats].sort((a, b) => a.id - b.id).map(c => c.nome) }
+export const expenseNames = (cats: Cat[]) => cats.map(c => c.nome).filter(n => n !== 'Renda')
+export const catColor = (c: string) => COL[Math.max(0, ORDER.indexOf(c)) % COL.length]
 export function parseCents(raw: string): number | null {
   const s = raw.trim().replace(/\./g, '').replace(',', '.')
   const v = Number(s)

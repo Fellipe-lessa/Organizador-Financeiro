@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
-import { API_URL, svc } from './services/transactionService'
-import type { Tx } from './types'
+import { API_URL, listCats, svc } from './services/transactionService'
+import type { Cat, Tx } from './types'
+import { setCatOrder } from './utils'
 import Dashboard from './pages/Dashboard'
 import Transactions from './pages/Transactions'
 import Reports from './pages/Reports'
@@ -13,11 +14,12 @@ export default function App() {
   const [page, setPage] = useState('Dashboard')
   const [ym, setYm] = useState({ y: n.getFullYear(), m: n.getMonth() })
   const [list, setList] = useState<Tx[]>([])
+  const [cats, setCats] = useState<Cat[]>([])
   const [status, setStatus] = useState<'load' | 'ok' | 'err'>('load')
   const [form, setForm] = useState<{ tx?: Tx; k: number } | null>(null)
   const [toast, setToast] = useState('')
   const refresh = async (msg?: string) => {
-    try { setList(await svc.list()); setStatus('ok'); if (msg) { setToast(msg); setTimeout(() => setToast(''), 2200) } }
+    try { const [l, c] = await Promise.all([svc.list(), listCats()]); setCatOrder(c); setCats(c); setList(l); setStatus('ok'); if (msg) { setToast(msg); setTimeout(() => setToast(''), 2200) } }
     catch { setStatus('err') }
   }
   useEffect(() => { refresh() }, [])
@@ -36,15 +38,15 @@ export default function App() {
       {status === 'err' && <div className="card empty">Não consegui falar com a API em {API_URL}. Confira se o back-end está rodando no IntelliJ.<br /><button className="btn" style={{ marginTop: 12 }} onClick={() => refresh()}>Tentar de novo</button></div>}
       {status === 'ok' && <>
         {page === 'Dashboard' && <Dashboard list={list} {...ym} shift={shift} onEdit={edit} onDel={del} go={setPage} />}
-        {page === 'Transações' && <Transactions list={list} onEdit={edit} onDel={del} />}
+        {page === 'Transações' && <Transactions list={list} cats={cats} onEdit={edit} onDel={del} />}
         {page === 'Relatórios' && <Reports list={list} {...ym} shift={shift} />}
-        {page === 'Categorias' && <Categories list={list} {...ym} shift={shift} />}
-        {page === 'Orçamentos' && <Budgets list={list} {...ym} shift={shift} />}
+        {page === 'Categorias' && <Categories list={list} cats={cats} onChanged={() => refresh()} {...ym} shift={shift} />}
+        {page === 'Orçamentos' && <Budgets list={list} cats={cats} {...ym} shift={shift} />}
         {page === 'Configurações' && <><div className="hd"><div><h1>Configurações</h1><p className="sub">Origem dos dados</p></div></div>
           <div className="card"><h2>Banco de dados</h2><p>As transações vêm do PostgreSQL pela API em {API_URL}. Orçamentos ainda ficam salvos só neste navegador.</p></div></>}
       </>}
     </main>
-    {form && <TxForm key={form.k} tx={form.tx} onClose={() => setForm(null)} onSaved={refresh} />}
+    {form && <TxForm key={form.k} cats={cats} tx={form.tx} onClose={() => setForm(null)} onSaved={refresh} />}
     <div id="toast" className={toast ? 's' : ''} role="status">{toast}</div>
   </>)
 }

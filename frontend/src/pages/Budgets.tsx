@@ -1,10 +1,10 @@
 import { useEffect, useState } from 'react'
 import type { Tx } from '../types'
-import { CATS } from '../types'
-import { brl, byCat, inMonth, parseCents, ymOf } from '../utils'
+import type { Cat } from '../types'
+import { brl, byCat, expenseNames, inMonth, parseCents, ymOf } from '../utils'
 import { budgetSvc } from '../services/budgetService'
 import PageHead, { MonthProps } from '../components/PageHead'
-export default function Budgets({ list, y, m, shift }: MonthProps & { list: Tx[] }) {
+export default function Budgets({ list, cats, y, m, shift }: MonthProps & { list: Tx[]; cats: Cat[] }) {
   const mes = ymOf(y, m)
   const [b, setB] = useState<Record<string, number>>({})
   const [err, setErr] = useState('')
@@ -22,7 +22,7 @@ export default function Budgets({ list, y, m, shift }: MonthProps & { list: Tx[]
     {err && <div className="card" role="alert" style={{ marginBottom: 16 }}>{err}</div>}
     {lim.length > 0 && <div className="card" style={{ marginBottom: 16 }}><div className="lab">Total nas categorias com limite</div><div className="val">{brl(ts)} de {brl(tl)}</div><span className="d">{tl >= ts ? `Restam ${brl(tl - ts)}` : `Excedido em ${brl(ts - tl)}`}</span></div>}
     <div className="card">
-      {CATS.map(c => { const l = b[c], s = spent[c] || 0, over = l !== undefined && s > l
+      {expenseNames(cats).map(c => { const l = b[c], s = spent[c] || 0, over = l !== undefined && s > l
         return <div className="rk" key={c + mes + (l ?? '')}><div style={{ display: 'flex', gap: 12, alignItems: 'center', flexWrap: 'wrap' }}><b style={{ flex: 1, minWidth: 160 }}>{c}</b>
           <span className="d">Gasto: {brl(s)}</span><input className="in" style={{ width: 130 }} aria-label={`Limite de ${c}`} placeholder="Limite R$" inputMode="decimal" defaultValue={l ? (l / 100).toFixed(2).replace('.', ',') : ''} onBlur={e => save(c, e.target.value)} /></div>
           {l !== undefined && <><div className="bar"><i style={{ width: `${Math.min(100, (s / l) * 100)}%`, background: over ? '#1B2233' : undefined }} /></div>

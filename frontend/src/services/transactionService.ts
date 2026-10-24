@@ -1,16 +1,20 @@
-import type { Tx } from '../types'
+import type { Cat, Tx } from '../types'
 // Camada de dados: agora fala com a API Spring Boot. Endereço configurável por VITE_API_URL.
 export const API_URL: string = import.meta.env.VITE_API_URL ?? 'http://localhost:8080'
 interface Api { id: number; tipo: 'D' | 'R'; data: string; categoriaId: number; categoria: string; formaPagamento: string; valorCentavos: number; observacao: string | null }
 const fromApi = (a: Api): Tx => ({ id: String(a.id), type: a.tipo === 'D' ? 'd' : 'r', date: a.data, cat: a.categoria, pay: a.formaPagamento, cents: a.valorCentavos, note: a.observacao ?? '' })
+export class ApiError extends Error { constructor(public status: number) { super(`Erro ${status}`) } }
 async function http<T>(path: string, init: RequestInit = {}): Promise<T> {
   const headers: Record<string, string> = init.body ? { 'Content-Type': 'application/json' } : {}
   const r = await fetch(API_URL + path, { ...init, headers })
-  if (!r.ok) throw new Error(`Erro ${r.status}`)
+  if (!r.ok) throw new ApiError(r.status)
   return r.status === 204 ? (undefined as T) : r.json()
 }
 let cats: Promise<Record<string, number>> | null = null
-export const catIds = () => (cats ??= http<{ id: number; nome: string }[]>('/api/categorias')
+export const listCats = () => http<Cat[]>('/api/categorias')
+export const createCat = async (nome: string) => { await http('/api/categorias', { method: 'POST', body: JSON.stringify({ nome }) }); cats = null }
+export const deleteCat = async (id: number) => { await http(`/api/categorias/${id}`, { method: 'DELETE' }); cats = null }
+export const catIds = () => (cats ??= listCats()
   .then(l => Object.fromEntries(l.map(c => [c.nome, c.id])))
   .catch(e => { cats = null; throw e }))
 export const svc = {
