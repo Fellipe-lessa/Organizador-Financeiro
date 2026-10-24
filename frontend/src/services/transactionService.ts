@@ -10,7 +10,7 @@ async function http<T>(path: string, init: RequestInit = {}): Promise<T> {
   return r.status === 204 ? (undefined as T) : r.json()
 }
 let cats: Promise<Record<string, number>> | null = null
-const catIds = () => (cats ??= http<{ id: number; nome: string }[]>('/api/categorias')
+export const catIds = () => (cats ??= http<{ id: number; nome: string }[]>('/api/categorias')
   .then(l => Object.fromEntries(l.map(c => [c.nome, c.id])))
   .catch(e => { cats = null; throw e }))
 export const svc = {
